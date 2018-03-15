@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.0.1
+ * vue-better-sync v1.0.2
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
