@@ -16,26 +16,32 @@ CDN:
 
 ## Usage
 
+[![Edit Vue Template](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/2z2n7k8qpy)
+
 `prompt.vue`:
 ```html
 <template>
   <div
     v-show="actualVisible"
     @click.self="syncVisible(!actualVisible)">
-    <input v-model="actualValue"></input>
+    <input v-model="actualText" type="text" />
+    [CLOSE]
   </div>
 </template>
 
 <script>
 import VueBetterSync from 'vue-better-sync'
+
 export default {
   name: 'prompt',
+
   mixins: [
     VueBetterSync({
       prop: 'text', // model prop, default: value
       event: 'change' // model event, default: input
     })
   ],
+
   props: {
     text: String,
     visible: {
@@ -51,19 +57,27 @@ export default {
 ```html
 <template>
   <div>
-    {{ text }} | {{ visible }}<hr />
+    text: {{ text }} <br />
+    visible: {{ visible }} <br />
+    <button type="button" @click="visible=!visible">
+      {{ visible ? 'CLOSE' : 'OPEN' }}
+    </button>
+    <hr />
     <prompt
       v-model="text"
       :visible.sync="visible"
-    ></prompt>
+    />
   </div>
 </template>
 
 <script>
 import prompt from './prompt.vue'
+
 export default {
   name: 'main',
+
   components: { prompt },
+
   data: () => ({
     text: 'hello',
     visible: true
