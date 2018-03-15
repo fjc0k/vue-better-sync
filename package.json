@@ -1,0 +1,64 @@
+{
+  "name": "vue-better-sync",
+  "version": "1.0.1",
+  "description": "Make it easier for props to enable two-way binding by v-model or .sync",
+  "repository": "git@github.com:fjc0k/vue-better-sync.git",
+  "author": "fjc0k <fjc0kb@gmail.com>",
+  "license": "MIT",
+  "main": "dist/vue-better-sync.cjs.js",
+  "module": "dist/vue-better-sync.es.js",
+  "unpkg": "dist/vue-better-sync.js",
+  "jsdelivr": "dist/vue-better-sync.js",
+  "files": [
+    "dist"
+  ],
+  "jest": {
+    "testEnvironment": "jsdom",
+    "moduleFileExtensions": [
+      "js",
+      "vue"
+    ],
+    "transform": {
+      "^.+\\.js$": "babel-jest",
+      "^.+\\.vue$": "vue-jest"
+    },
+    "moduleDirectories": [
+      "node_modules"
+    ]
+  },
+  "xo": {
+    "extends": [
+      "rem",
+      "plugin:vue/essential"
+    ],
+    "envs": [
+      "browser",
+      "jest"
+    ],
+    "rules": {
+      "unicorn/filename-case": 0,
+      "import/prefer-default-export": 0
+    }
+  },
+  "scripts": {
+    "lint": "xo",
+    "test": "yarn run lint && cross-env BABEL_ENV=test jest",
+    "test:cov": "yarn run lint && cross-env BABEL_ENV=test jest --coverage",
+    "build": "bili --format es,cjs,umd,umd-min --module-name VueBetterSync --js buble --banner --no-babel.babelrc",
+    "prepublishOnly": "yarn run build"
+  },
+  "devDependencies": {
+    "@vue/test-utils": "^1.0.0-beta.12",
+    "babel-jest": "^22.4.1",
+    "babel-preset-env": "^1.6.1",
+    "bili": "^3.0.7",
+    "cross-env": "^5.1.4",
+    "eslint-config-rem": "^4.0.0",
+    "eslint-plugin-vue": "^4.3.0",
+    "jest": "^22.4.2",
+    "vue": "^2.5.16",
+    "vue-jest": "^2.1.1",
+    "vue-template-compiler": "^2.5.16",
+    "xo": "^0.20.3"
+  }
+}
