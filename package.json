@@ -1,6 +1,6 @@
 {
   "name": "vue-better-sync",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Make it easier for props to enable two-way binding by v-model or .sync",
   "repository": "git@github.com:fjc0k/vue-better-sync.git",
   "author": "fjc0k <fjc0kb@gmail.com>",
@@ -44,8 +44,7 @@
     "lint": "xo",
     "test": "yarn run lint && cross-env BABEL_ENV=test jest",
     "test:cov": "yarn run lint && cross-env BABEL_ENV=test jest --coverage",
-    "build": "bili --format es,cjs,umd,umd-min --module-name VueBetterSync --js buble --banner --no-babel.babelrc",
-    "prepublishOnly": "yarn run build"
+    "build": "bili --format es,cjs,umd,umd-min --module-name VueBetterSync --js buble --banner --no-babel.babelrc"
   },
   "devDependencies": {
     "@vue/test-utils": "^1.0.0-beta.12",
