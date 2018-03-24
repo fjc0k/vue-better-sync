@@ -38,6 +38,7 @@ export default ({
       const proxy = `actual${PropName}`
       const syncMethod = `sync${PropName}`
       const directSyncMethod = `sync${PropName}Directly`
+      const beforeSyncMethod = `beforeSync${PropName}`
 
       ctx[X_DATA_PROPS][proxy] = propName
 
@@ -69,9 +70,19 @@ export default ({
 
       ctx.watch[proxy] = function (newValue, oldValue) {
         // now: this[proxy] === newValue
-        if (newValue !== oldValue) {
+        if (newValue !== oldValue && newValue !== this[propName]) {
           // so: `this[proxy] = newValue` will not trigger watcher
-          this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PROXY)
+          const confirm = () => {
+            this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PROXY)
+          }
+          const cancel = () => {
+            this[proxy] = oldValue
+          }
+          if (typeof this[beforeSyncMethod] === 'function') {
+            this[beforeSyncMethod](oldValue, newValue, confirm, cancel)
+          } else {
+            confirm()
+          }
         }
       }
     })
