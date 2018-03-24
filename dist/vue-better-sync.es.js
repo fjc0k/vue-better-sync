@@ -51,7 +51,6 @@ var index = (function (ref) {
       var proxy = "actual" + PropName;
       var syncMethod = "sync" + PropName;
       var directSyncMethod = "sync" + PropName + "Directly";
-      var beforeSyncMethod = "beforeSync" + PropName;
       ctx[X_DATA_PROPS][proxy] = propName;
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
@@ -83,24 +82,10 @@ var index = (function (ref) {
       };
 
       ctx.watch[proxy] = function (newValue, oldValue) {
-        var this$1 = this;
-
         // now: this[proxy] === newValue
-        if (newValue !== oldValue && newValue !== this[propName]) {
+        if (newValue !== oldValue) {
           // so: `this[proxy] = newValue` will not trigger watcher
-          var confirm = function () {
-            this$1[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PROXY);
-          };
-
-          var cancel = function () {
-            this$1[proxy] = oldValue;
-          };
-
-          if (typeof this[beforeSyncMethod] === 'function') {
-            this[beforeSyncMethod](oldValue, newValue, confirm, cancel);
-          } else {
-            confirm();
-          }
+          this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PROXY);
         }
       };
     });
