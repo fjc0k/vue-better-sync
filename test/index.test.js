@@ -1,7 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 
 import { mount } from '@vue/test-utils'
-import { Prompt, Prompt2 } from './components'
+import { Prompt, Prompt2, Prompt3 } from './components'
 
 const DEFAULT_VALUE = 'hello'
 const DEFAULT_VISIBLE = false
@@ -98,4 +98,30 @@ it('two-way binding by `v-model` with custom `event`', () => {
   expect(prompt.emitted()[event].length).toBe(1)
   expect(prompt.emitted()[event][0]).toEqual([newValue, oldValue])
   expect(wrapper.vm.value).toBe(newValue)
+})
+
+it('two-way binding with `beforeSync${PropName}`', done => {
+  const oldValue = DEFAULT_VALUE
+  const oldVisible = DEFAULT_VISIBLE
+  const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" :visible.sync="visible" />`, Prompt3)
+  expect(wrapper.vm.value).toBe(oldValue)
+
+  const newValue = 'world'
+  input.element.value = newValue
+  input.trigger('input')
+  expect(wrapper.vm.value).toBe(newValue)
+
+  const newValue2 = newValue + '_desync'
+  input.element.value = newValue2
+  input.trigger('input')
+  expect(prompt.vm.actualValue).toBe(newValue)
+  expect(wrapper.vm.value).toBe(newValue)
+
+  expect(wrapper.vm.visible).toBe(oldVisible)
+  prompt.trigger('click')
+  const newVisible = !oldVisible
+  setTimeout(() => {
+    expect(wrapper.vm.visible).toBe(newVisible)
+    done()
+  }, 3000)
 })
