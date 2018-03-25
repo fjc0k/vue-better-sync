@@ -1,6 +1,8 @@
 import { camelCase } from './utils'
 
-const X_DATA_PROPS = '_DATA_PROPS_'
+const X_DATA_PROPS = '_VBS_DATA_PROPS_'
+const X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_'
+const X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_'
 const X_PROP_CHANGED_BY_PARENT = 1
 const X_PROP_CHANGED_BY_PROXY = 2
 
@@ -11,7 +13,13 @@ export default ({
   model: { prop, event },
 
   data() {
-    const props = this.$options[X_DATA_PROPS] || {}
+    const ctx = this.$options
+
+    if (this[X_DATA_PROCESSED] || !ctx[X_DATA_PROPS]) return
+
+    this[X_DATA_PROCESSED] = true
+    const props = ctx[X_DATA_PROPS]
+
     return Object.keys(props).reduce((data, proxy) => {
       data[proxy] = this[props[proxy]]
       return data
@@ -21,8 +29,9 @@ export default ({
   beforeCreate() {
     const ctx = this.$options
 
-    if (!ctx.props) return
+    if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) return
 
+    this[X_BEFORE_CREATE_PROCESSED] = true
     ctx[X_DATA_PROPS] = {}
     ctx.methods = ctx.methods || {}
     ctx.watch = ctx.watch || {}
