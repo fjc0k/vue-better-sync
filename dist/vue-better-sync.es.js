@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.0.5
+ * vue-better-sync v1.0.6
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -12,7 +12,9 @@ var camelCase = (function (word) {
   return cache[word];
 });
 
-var X_DATA_PROPS = '_DATA_PROPS_';
+var X_DATA_PROPS = '_VBS_DATA_PROPS_';
+var X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_';
+var X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_';
 var X_PROP_CHANGED_BY_PARENT = 1;
 var X_PROP_CHANGED_BY_PROXY = 2;
 var index = (function (ref) {
@@ -29,7 +31,10 @@ var index = (function (ref) {
   data: function data() {
     var this$1 = this;
 
-    var props = this.$options[X_DATA_PROPS] || {};
+    var ctx = this.$options;
+    if (this[X_DATA_PROCESSED] || !ctx[X_DATA_PROPS]) { return; }
+    this[X_DATA_PROCESSED] = true;
+    var props = ctx[X_DATA_PROPS];
     return Object.keys(props).reduce(function (data, proxy) {
       data[proxy] = this$1[props[proxy]];
       return data;
@@ -38,7 +43,8 @@ var index = (function (ref) {
 
   beforeCreate: function beforeCreate() {
     var ctx = this.$options;
-    if (!ctx.props) { return; }
+    if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) { return; }
+    this[X_BEFORE_CREATE_PROCESSED] = true;
     ctx[X_DATA_PROPS] = {};
     ctx.methods = ctx.methods || {};
     ctx.watch = ctx.watch || {};
