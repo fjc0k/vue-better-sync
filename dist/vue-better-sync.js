@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.0.6
+ * vue-better-sync v1.0.7
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -100,8 +100,10 @@ var index = (function (ref) {
         // now: this[proxy] === newValue
         if (newValue !== oldValue && newValue !== this[propName]) {
           // so: `this[proxy] = newValue` will not trigger watcher
-          var confirm = function () {
-            this$1[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PROXY);
+          var confirm = function (_newValue) {
+            if ( _newValue === void 0 ) _newValue = newValue;
+
+            this$1[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PROXY);
           };
 
           var cancel = function () {
