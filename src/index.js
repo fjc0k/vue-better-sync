@@ -81,8 +81,8 @@ export default ({
         // now: this[proxy] === newValue
         if (newValue !== oldValue && newValue !== this[propName]) {
           // so: `this[proxy] = newValue` will not trigger watcher
-          const confirm = () => {
-            this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PROXY)
+          const confirm = (_newValue = newValue) => {
+            this[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PROXY)
           }
           const cancel = () => {
             this[proxy] = oldValue
