@@ -43,6 +43,7 @@ it('two-way binding by `.sync`', () => {
   const { wrapper, prompt } = wrap(`<Prompt :visible.sync="visible" />`)
   expect(wrapper.vm.visible).toBe(oldValue)
   expect(prompt.vm.actualVisible).toBe(oldValue)
+
   const newValue = !oldValue
   prompt.trigger('click')
   expect(prompt.vm.actualVisible).toBe(newValue)
@@ -57,6 +58,7 @@ it('two-way binding by `v-model`', () => {
   expect(wrapper.vm.value).toBe(oldValue)
   expect(prompt.vm.actualValue).toBe(oldValue)
   expect(input.element.value).toBe(oldValue)
+
   const newValue = 'world'
   input.element.value = newValue
   input.trigger('input')
@@ -67,12 +69,24 @@ it('two-way binding by `v-model`', () => {
   expect(wrapper.vm.value).toBe(newValue)
 })
 
+it('two-way binding: down', () => {
+  const oldValue = DEFAULT_VALUE
+  const { wrapper, prompt } = wrap(`<Prompt v-model="value" />`)
+  expect(wrapper.vm.value).toBe(oldValue)
+  expect(prompt.vm.actualValue).toBe(oldValue)
+
+  const newValue = 'world'
+  wrapper.setData({ value: newValue })
+  expect(prompt.vm.actualValue).toBe(newValue)
+})
+
 it('two-way binding by `v-model` or `.sync`', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt, input } = wrap(`<Prompt :value.sync="value" />`)
   expect(wrapper.vm.value).toBe(oldValue)
   expect(prompt.vm.actualValue).toBe(oldValue)
   expect(input.element.value).toBe(oldValue)
+
   const newValue = 'world'
   input.element.value = newValue
   input.trigger('input')
@@ -90,6 +104,7 @@ it('two-way binding by `v-model` with custom `event`', () => {
   expect(wrapper.vm.value).toBe(oldValue)
   expect(prompt.vm.actualValue).toBe(oldValue)
   expect(input.element.value).toBe(oldValue)
+
   const newValue = 'world'
   input.element.value = newValue
   input.trigger('input')
@@ -132,4 +147,10 @@ it('two-way binding with `beforeProxy${PropName}`', () => {
   expect(wrapper.vm.value).toBe(oldValue)
   expect(prompt.vm.actualValue).toBe(Number(oldValue))
   expect(prompt.emitted().input).toBe(undefined)
+
+  const newValue = '900'
+  wrapper.setData({ value: newValue })
+  expect(prompt.emitted().input).toBe(undefined)
+  expect(wrapper.vm.value).toBe(newValue)
+  expect(prompt.vm.actualValue).toBe(Number(newValue))
 })
