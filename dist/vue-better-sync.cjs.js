@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.0.7
+ * vue-better-sync v1.0.8
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -14,7 +14,7 @@ var camelCase = (function (word) {
   return cache[word];
 });
 
-var X_DATA_PROPS = '_VBS_DATA_PROPS_';
+var X_PROXY_PROPS = '_VBS_PROXY_PROPS_';
 var X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_';
 var X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_';
 var X_PROP_CHANGED_BY_PARENT = 1;
@@ -31,14 +31,12 @@ var index = (function (ref) {
   },
 
   data: function data() {
-    var this$1 = this;
-
     var ctx = this.$options;
-    if (this[X_DATA_PROCESSED] || !ctx[X_DATA_PROPS]) { return; }
+    if (this[X_DATA_PROCESSED] || !ctx[X_PROXY_PROPS]) { return; }
     this[X_DATA_PROCESSED] = true;
-    var props = ctx[X_DATA_PROPS];
-    return Object.keys(props).reduce(function (data, proxy) {
-      data[proxy] = this$1[props[proxy]];
+    var proxyProps = ctx[X_PROXY_PROPS];
+    return proxyProps.reduce(function (data, proxyPropName) {
+      data[proxyPropName] = null;
       return data;
     }, {});
   },
@@ -47,7 +45,7 @@ var index = (function (ref) {
     var ctx = this.$options;
     if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) { return; }
     this[X_BEFORE_CREATE_PROCESSED] = true;
-    ctx[X_DATA_PROPS] = {};
+    ctx[X_PROXY_PROPS] = [];
     ctx.methods = ctx.methods || {};
     ctx.watch = ctx.watch || {};
     Object.keys(ctx.props).forEach(function (propName) {
@@ -60,7 +58,8 @@ var index = (function (ref) {
       var syncMethod = "sync" + PropName;
       var directSyncMethod = "sync" + PropName + "Directly";
       var beforeSyncMethod = "beforeSync" + PropName;
-      ctx[X_DATA_PROPS][proxy] = propName;
+      var beforeProxyMethod = "beforeProxy" + PropName;
+      ctx[X_PROXY_PROPS].push(proxy);
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
         if (oldValue !== newValue) {
@@ -84,10 +83,29 @@ var index = (function (ref) {
         this[proxy] = newValue;
       };
 
-      ctx.watch[propName] = function (newValue, oldValue) {
-        if (newValue !== oldValue) {
-          this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
+      ctx.watch[propName] = {
+        immediate: true,
+
+        handler: function handler(newValue, oldValue) {
+          var this$1 = this;
+
+          if (newValue !== oldValue) {
+            var confirm = function (_newValue) {
+              if ( _newValue === void 0 ) _newValue = newValue;
+
+              this$1[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
+            };
+
+            var cancel = function () {};
+
+            if (typeof this[beforeProxyMethod] === 'function') {
+              this[beforeProxyMethod](oldValue, newValue, confirm, cancel);
+            } else {
+              confirm();
+            }
+          }
         }
+
       };
 
       ctx.watch[proxy] = function (newValue, oldValue) {
