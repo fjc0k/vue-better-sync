@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.0.8
+ * vue-better-sync v1.0.9
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -21,6 +21,7 @@ var camelCase = (function (word) {
 var X_PROXY_PROPS = '_VBS_PROXY_PROPS_';
 var X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_';
 var X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_';
+var X_DESYNC = '_VBS_DESYNC_';
 var X_PROP_CHANGED_BY_PARENT = 1;
 var X_PROP_CHANGED_BY_PROXY = 2;
 var index = (function (ref) {
@@ -97,6 +98,10 @@ var index = (function (ref) {
             var confirm = function (_newValue) {
               if ( _newValue === void 0 ) _newValue = newValue;
 
+              if (_newValue !== newValue) {
+                this$1[X_DESYNC] = true;
+              }
+
               this$1[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
             };
 
@@ -115,7 +120,12 @@ var index = (function (ref) {
       ctx.watch[proxy] = function (newValue, oldValue) {
         var this$1 = this;
 
-        // now: this[proxy] === newValue
+        if (this[X_DESYNC]) {
+          this[X_DESYNC] = false;
+          return;
+        } // now: this[proxy] === newValue
+
+
         if (newValue !== oldValue && newValue !== this[propName]) {
           // so: `this[proxy] = newValue` will not trigger watcher
           var confirm = function (_newValue) {
