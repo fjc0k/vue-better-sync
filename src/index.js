@@ -3,6 +3,7 @@ import { camelCase } from './utils'
 const X_PROXY_PROPS = '_VBS_PROXY_PROPS_'
 const X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_'
 const X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_'
+const X_DESYNC = '_VBS_DESYNC_'
 const X_PROP_CHANGED_BY_PARENT = 1
 const X_PROP_CHANGED_BY_PROXY = 2
 
@@ -77,6 +78,9 @@ export default ({
         handler(newValue, oldValue) {
           if (newValue !== oldValue) {
             const confirm = (_newValue = newValue) => {
+              if (_newValue !== newValue) {
+                this[X_DESYNC] = true
+              }
               this[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PARENT)
             }
             const cancel = () => {}
@@ -90,6 +94,11 @@ export default ({
       }
 
       ctx.watch[proxy] = function (newValue, oldValue) {
+        if (this[X_DESYNC]) {
+          this[X_DESYNC] = false
+          return
+        }
+
         // now: this[proxy] === newValue
         if (newValue !== oldValue && newValue !== this[propName]) {
           // so: `this[proxy] = newValue` will not trigger watcher
