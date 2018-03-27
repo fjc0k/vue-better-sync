@@ -1,6 +1,6 @@
 import { camelCase } from './utils'
 
-const X_DATA_PROPS = '_VBS_DATA_PROPS_'
+const X_PROXY_PROPS = '_VBS_PROXY_PROPS_'
 const X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_'
 const X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_'
 const X_PROP_CHANGED_BY_PARENT = 1
@@ -15,13 +15,13 @@ export default ({
   data() {
     const ctx = this.$options
 
-    if (this[X_DATA_PROCESSED] || !ctx[X_DATA_PROPS]) return
+    if (this[X_DATA_PROCESSED] || !ctx[X_PROXY_PROPS]) return
 
     this[X_DATA_PROCESSED] = true
-    const props = ctx[X_DATA_PROPS]
+    const proxyProps = ctx[X_PROXY_PROPS]
 
-    return Object.keys(props).reduce((data, proxy) => {
-      data[proxy] = this[props[proxy]]
+    return proxyProps.reduce((data, proxyPropName) => {
+      data[proxyPropName] = null
       return data
     }, {})
   },
@@ -32,7 +32,7 @@ export default ({
     if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) return
 
     this[X_BEFORE_CREATE_PROCESSED] = true
-    ctx[X_DATA_PROPS] = {}
+    ctx[X_PROXY_PROPS] = []
     ctx.methods = ctx.methods || {}
     ctx.watch = ctx.watch || {}
 
@@ -48,8 +48,9 @@ export default ({
       const syncMethod = `sync${PropName}`
       const directSyncMethod = `sync${PropName}Directly`
       const beforeSyncMethod = `beforeSync${PropName}`
+      const beforeProxyMethod = `beforeProxy${PropName}`
 
-      ctx[X_DATA_PROPS][proxy] = propName
+      ctx[X_PROXY_PROPS].push(proxy)
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
         if (oldValue !== newValue) {
@@ -71,9 +72,20 @@ export default ({
         this[proxy] = newValue
       }
 
-      ctx.watch[propName] = function (newValue, oldValue) {
-        if (newValue !== oldValue) {
-          this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PARENT)
+      ctx.watch[propName] = {
+        immediate: true,
+        handler(newValue, oldValue) {
+          if (newValue !== oldValue) {
+            const confirm = (_newValue = newValue) => {
+              this[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PARENT)
+            }
+            const cancel = () => {}
+            if (typeof this[beforeProxyMethod] === 'function') {
+              this[beforeProxyMethod](oldValue, newValue, confirm, cancel)
+            } else {
+              confirm()
+            }
+          }
         }
       }
 
