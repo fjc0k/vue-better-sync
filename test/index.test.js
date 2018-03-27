@@ -1,9 +1,9 @@
 /* eslint-disable no-template-curly-in-string */
 
 import { mount } from '@vue/test-utils'
-import { Prompt, Prompt2, Prompt3 } from './components'
+import { Prompt, Prompt2, Prompt3, Prompt4 } from './components'
 
-const DEFAULT_VALUE = 'hello'
+const DEFAULT_VALUE = '123'
 const DEFAULT_VISIBLE = false
 
 const genComponent = (template, _Prompt) => ({
@@ -124,4 +124,12 @@ it('two-way binding with `beforeSync${PropName}`', done => {
     expect(wrapper.vm.visible).toBe(newVisible)
     done()
   }, 3000)
+})
+
+it('two-way binding with `beforeProxy${PropName}`', () => {
+  const oldValue = DEFAULT_VALUE
+  const { wrapper, prompt } = wrap(`<Prompt v-model="value" />`, Prompt4)
+  expect(wrapper.vm.value).toBe(oldValue)
+  expect(prompt.vm.actualValue).toBe(Number(oldValue))
+  expect(prompt.emitted().input).toBe(undefined)
 })
