@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.0.9
+ * vue-better-sync v1.1.0
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -81,6 +81,11 @@ var index = (function (ref) {
       };
 
       ctx.methods[syncMethod] = function (newValue) {
+        // Compatible to Event value
+        if (newValue instanceof Event && newValue.target && newValue.target.value) {
+          newValue = newValue.target.value;
+        }
+
         this[proxy] = newValue;
       };
 
