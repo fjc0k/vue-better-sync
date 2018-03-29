@@ -70,6 +70,11 @@ export default ({
       }
 
       ctx.methods[syncMethod] = function (newValue) {
+        // Compatible to Event value
+        if (newValue instanceof Event && newValue.target && newValue.target.value) {
+          newValue = newValue.target.value
+        }
+
         this[proxy] = newValue
       }
 
