@@ -95,7 +95,7 @@ export default ({
               newValue = newValue == null ? newValue : this[transformMethod](newValue, true)
               oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true)
             }
-            if (newValue !== oldValue) {
+            if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
               this[directSyncMethod](
                 newValue,
                 oldValue,
@@ -113,7 +113,7 @@ export default ({
             newValue = newValue == null ? newValue : this[transformMethod](newValue, false)
             oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false)
           }
-          if (newValue !== oldValue) {
+          if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
             this[directSyncMethod](
               newValue,
               oldValue,
