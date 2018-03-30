@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v1.1.0
+ * vue-better-sync v2.0.0
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -12,12 +12,14 @@ var camelCase = (function (word) {
   return cache[word];
 });
 
+/* eslint no-eq-null: 0 eqeqeq: [2, "smart"] */
 var X_PROXY_PROPS = '_VBS_PROXY_PROPS_';
 var X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_';
 var X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_';
-var X_DESYNC = '_VBS_DESYNC_';
+var X_LAST_VALUES_FROM_PARENT = '_VBS_LAST_VALUES_FROM_PARENT_';
+var X_LAST_VALUES_FROM_CHILD = '_X_LAST_VALUES_FROM_CHILD_';
 var X_PROP_CHANGED_BY_PARENT = 1;
-var X_PROP_CHANGED_BY_PROXY = 2;
+var X_PROP_CHANGED_BY_CHILD = 2;
 var index = (function (ref) {
   if ( ref === void 0 ) ref = {};
   var prop = ref.prop; if ( prop === void 0 ) prop = 'value';
@@ -45,6 +47,8 @@ var index = (function (ref) {
     if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) { return; }
     this[X_BEFORE_CREATE_PROCESSED] = true;
     ctx[X_PROXY_PROPS] = [];
+    this[X_LAST_VALUES_FROM_PARENT] = {};
+    this[X_LAST_VALUES_FROM_CHILD] = {};
     ctx.methods = ctx.methods || {};
     ctx.watch = ctx.watch || {};
     Object.keys(ctx.props).forEach(function (propName) {
@@ -56,17 +60,16 @@ var index = (function (ref) {
       var proxy = "actual" + PropName;
       var syncMethod = "sync" + PropName;
       var directSyncMethod = "sync" + PropName + "Directly";
-      var beforeSyncMethod = "beforeSync" + PropName;
-      var beforeProxyMethod = "beforeProxy" + PropName;
+      var transformMethod = "transform" + PropName;
       ctx[X_PROXY_PROPS].push(proxy);
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
         if (oldValue !== newValue) {
-          if (propChangedBy !== X_PROP_CHANGED_BY_PROXY) {
+          if (propChangedBy === X_PROP_CHANGED_BY_PARENT && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
             this[proxy] = newValue;
           }
 
-          if (propChangedBy !== X_PROP_CHANGED_BY_PARENT) {
+          if (propChangedBy === X_PROP_CHANGED_BY_CHILD && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
             if (isModel) {
               this.$emit(event, newValue, oldValue);
             }
@@ -91,25 +94,16 @@ var index = (function (ref) {
         immediate: true,
 
         handler: function handler(newValue, oldValue) {
-          var this$1 = this;
-
           if (newValue !== oldValue) {
-            var confirm = function (_newValue) {
-              if ( _newValue === void 0 ) _newValue = newValue;
+            this[X_LAST_VALUES_FROM_PARENT][propName] = newValue;
 
-              if (_newValue !== newValue) {
-                this$1[X_DESYNC] = true;
-              }
+            if (typeof this[transformMethod] === 'function') {
+              newValue = newValue == null ? newValue : this[transformMethod](newValue, true);
+              oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true);
+            }
 
-              this$1[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
-            };
-
-            var cancel = function () {};
-
-            if (typeof this[beforeProxyMethod] === 'function') {
-              this[beforeProxyMethod](oldValue, newValue, confirm, cancel);
-            } else {
-              confirm();
+            if (newValue !== oldValue) {
+              this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
             }
           }
         }
@@ -117,30 +111,16 @@ var index = (function (ref) {
       };
 
       ctx.watch[proxy] = function (newValue, oldValue) {
-        var this$1 = this;
+        if (newValue !== oldValue) {
+          this[X_LAST_VALUES_FROM_CHILD][propName] = newValue;
 
-        if (this[X_DESYNC]) {
-          this[X_DESYNC] = false;
-          return;
-        } // now: this[proxy] === newValue
+          if (typeof this[transformMethod] === 'function') {
+            newValue = newValue == null ? newValue : this[transformMethod](newValue, false);
+            oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false);
+          }
 
-
-        if (newValue !== oldValue && newValue !== this[propName]) {
-          // so: `this[proxy] = newValue` will not trigger watcher
-          var confirm = function (_newValue) {
-            if ( _newValue === void 0 ) _newValue = newValue;
-
-            this$1[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PROXY);
-          };
-
-          var cancel = function () {
-            this$1[proxy] = oldValue;
-          };
-
-          if (typeof this[beforeSyncMethod] === 'function') {
-            this[beforeSyncMethod](oldValue, newValue, confirm, cancel);
-          } else {
-            confirm();
+          if (newValue !== oldValue) {
+            this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_CHILD);
           }
         }
       };
