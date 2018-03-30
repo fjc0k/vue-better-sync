@@ -119,13 +119,13 @@ it('two-way binding with `transform${PropName}`', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" />`, Prompt3)
   expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe('_' + oldValue)
+  expect(prompt.vm.actualValue).toBe(oldValue + '_')
   expect(prompt.emitted().input).toBe(undefined)
 
   const newValue = '=-='
   input.element.value = newValue
   input.trigger('input')
   expect(prompt.vm.actualValue).toBe(newValue)
-  expect(prompt.emitted().input[0]).toEqual([newValue + '_', '_' + oldValue])
-  expect(wrapper.vm.value).toBe(newValue + '_')
+  expect(prompt.emitted().input[0]).toEqual([newValue + '-', oldValue + '_'])
+  expect(wrapper.vm.value).toBe(newValue + '-')
 })

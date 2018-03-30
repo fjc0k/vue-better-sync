@@ -1,5 +1,5 @@
 /* eslint no-eq-null: 0 eqeqeq: [2, "smart"] */
-import { camelCase } from './utils'
+import { camelCase, isFunction, isObject } from './utils'
 
 const X_PROXY_PROPS = '_VBS_PP_'
 const X_DATA_PROCESSED = '_VBS_DP_'
@@ -7,8 +7,10 @@ const X_BEFORE_CREATE_PROCESSED = '_VBS_BCP_'
 const X_LAST_VALUES_FROM_PARENT = '_VBS_LVFP_'
 const X_LAST_VALUES_FROM_CHILD = '_VBS_LVFC_'
 const X_PROXY_CHANGED_BY_PARENT = '_VBS_PCBP_'
-const X_PROP_CHANGED_BY_PARENT = 1
-const X_PROP_CHANGED_BY_CHILD = 2
+const X_PROP_CHANGED_BY_PARENT = 0
+const X_PROP_CHANGED_BY_CHILD = 1
+const X_WATCH_PROP = 0
+const X_WATCH_PROXY = 1
 
 export default ({
   prop = 'value',
@@ -54,6 +56,7 @@ export default ({
       const syncMethod = `sync${PropName}`
       const directSyncMethod = `sync${PropName}Directly`
       const transformMethod = `transform${PropName}`
+      const watchMethod = `_VBS_W_${propName}_`
 
       ctx[X_PROXY_PROPS].push(proxy)
 
@@ -89,22 +92,36 @@ export default ({
         this[proxy] = newValue
       }
 
+      ctx.methods[watchMethod] = function (newValue, oldValue, from) {
+        if (newValue !== oldValue) {
+          const fromProp = from === X_WATCH_PROP
+          const LAST_VALUES_FROM = fromProp ? X_LAST_VALUES_FROM_PARENT : X_LAST_VALUES_FROM_CHILD
+          const CHANGED_BY = fromProp ? X_PROP_CHANGED_BY_PARENT : X_PROP_CHANGED_BY_CHILD
+          this[LAST_VALUES_FROM][propName] = newValue
+          if (isFunction(this[transformMethod])) {
+            const transformedValue = this[transformMethod](
+              { oldValue, newValue },
+              fromProp
+            )
+            if (isObject(transformedValue)) {
+              oldValue = transformedValue.oldValue
+              newValue = transformedValue.newValue
+            }
+          }
+          if (newValue !== oldValue) {
+            this[directSyncMethod](
+              newValue,
+              oldValue,
+              CHANGED_BY
+            )
+          }
+        }
+      }
+
       ctx.watch[propName] = {
         immediate: true,
         handler(newValue, oldValue) {
-          if (newValue !== oldValue) {
-            this[X_LAST_VALUES_FROM_PARENT][propName] = newValue
-            if (typeof this[transformMethod] === 'function') {
-              newValue = newValue == null ? newValue : this[transformMethod](newValue, true)
-            }
-            if (newValue !== oldValue) {
-              this[directSyncMethod](
-                newValue,
-                oldValue,
-                X_PROP_CHANGED_BY_PARENT
-              )
-            }
-          }
+          this[watchMethod](newValue, oldValue, X_WATCH_PROP)
         }
       }
 
@@ -115,19 +132,7 @@ export default ({
             this[X_PROXY_CHANGED_BY_PARENT] = false
             return
           }
-          if (newValue !== oldValue) {
-            this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
-            if (typeof this[transformMethod] === 'function') {
-              newValue = newValue == null ? newValue : this[transformMethod](newValue, false)
-            }
-            if (newValue !== oldValue) {
-              this[directSyncMethod](
-                newValue,
-                oldValue,
-                X_PROP_CHANGED_BY_CHILD
-              )
-            }
-          }
+          this[watchMethod](newValue, oldValue, X_WATCH_PROXY)
         }
       }
     })

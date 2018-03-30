@@ -30,8 +30,9 @@ export default {
     handleClick() {
       this.syncVisible(!this.actualVisible)
     },
-    transformValue(value, fromProp) {
-      return fromProp ? `_${value}` : `${value}_`
+    transformValue(_, fromProp) {
+      _.newValue += fromProp ? '_' : '-'
+      return _
     }
   }
 }
