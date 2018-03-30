@@ -1,11 +1,13 @@
+/* eslint no-eq-null: 0 eqeqeq: [2, "smart"] */
 import { camelCase } from './utils'
 
 const X_PROXY_PROPS = '_VBS_PROXY_PROPS_'
 const X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_'
 const X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_'
-const X_DESYNC = '_VBS_DESYNC_'
+const X_LAST_VALUES_FROM_PARENT = '_VBS_LAST_VALUES_FROM_PARENT_'
+const X_LAST_VALUES_FROM_CHILD = '_X_LAST_VALUES_FROM_CHILD_'
 const X_PROP_CHANGED_BY_PARENT = 1
-const X_PROP_CHANGED_BY_PROXY = 2
+const X_PROP_CHANGED_BY_CHILD = 2
 
 export default ({
   prop = 'value',
@@ -34,6 +36,8 @@ export default ({
 
     this[X_BEFORE_CREATE_PROCESSED] = true
     ctx[X_PROXY_PROPS] = []
+    this[X_LAST_VALUES_FROM_PARENT] = {}
+    this[X_LAST_VALUES_FROM_CHILD] = {}
     ctx.methods = ctx.methods || {}
     ctx.watch = ctx.watch || {}
 
@@ -48,17 +52,22 @@ export default ({
       const proxy = `actual${PropName}`
       const syncMethod = `sync${PropName}`
       const directSyncMethod = `sync${PropName}Directly`
-      const beforeSyncMethod = `beforeSync${PropName}`
-      const beforeProxyMethod = `beforeProxy${PropName}`
+      const transformMethod = `transform${PropName}`
 
       ctx[X_PROXY_PROPS].push(proxy)
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
         if (oldValue !== newValue) {
-          if (propChangedBy !== X_PROP_CHANGED_BY_PROXY) {
+          if (
+            propChangedBy === X_PROP_CHANGED_BY_PARENT &&
+            newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]
+          ) {
             this[proxy] = newValue
           }
-          if (propChangedBy !== X_PROP_CHANGED_BY_PARENT) {
+          if (
+            propChangedBy === X_PROP_CHANGED_BY_CHILD &&
+            newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]
+          ) {
             if (isModel) {
               this.$emit(event, newValue, oldValue)
             }
@@ -74,7 +83,6 @@ export default ({
         if (newValue instanceof Event && newValue.target && newValue.target.value) {
           newValue = newValue.target.value
         }
-
         this[proxy] = newValue
       }
 
@@ -82,41 +90,35 @@ export default ({
         immediate: true,
         handler(newValue, oldValue) {
           if (newValue !== oldValue) {
-            const confirm = (_newValue = newValue) => {
-              if (_newValue !== newValue) {
-                this[X_DESYNC] = true
-              }
-              this[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PARENT)
+            this[X_LAST_VALUES_FROM_PARENT][propName] = newValue
+            if (typeof this[transformMethod] === 'function') {
+              newValue = newValue == null ? newValue : this[transformMethod](newValue, true)
+              oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true)
             }
-            const cancel = () => {}
-            if (typeof this[beforeProxyMethod] === 'function') {
-              this[beforeProxyMethod](oldValue, newValue, confirm, cancel)
-            } else {
-              confirm()
+            if (newValue !== oldValue) {
+              this[directSyncMethod](
+                newValue,
+                oldValue,
+                X_PROP_CHANGED_BY_PARENT
+              )
             }
           }
         }
       }
 
       ctx.watch[proxy] = function (newValue, oldValue) {
-        if (this[X_DESYNC]) {
-          this[X_DESYNC] = false
-          return
-        }
-
-        // now: this[proxy] === newValue
-        if (newValue !== oldValue && newValue !== this[propName]) {
-          // so: `this[proxy] = newValue` will not trigger watcher
-          const confirm = (_newValue = newValue) => {
-            this[directSyncMethod](_newValue, oldValue, X_PROP_CHANGED_BY_PROXY)
+        if (newValue !== oldValue) {
+          this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
+          if (typeof this[transformMethod] === 'function') {
+            newValue = newValue == null ? newValue : this[transformMethod](newValue, false)
+            oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false)
           }
-          const cancel = () => {
-            this[proxy] = oldValue
-          }
-          if (typeof this[beforeSyncMethod] === 'function') {
-            this[beforeSyncMethod](oldValue, newValue, confirm, cancel)
-          } else {
-            confirm()
+          if (newValue !== oldValue) {
+            this[directSyncMethod](
+              newValue,
+              oldValue,
+              X_PROP_CHANGED_BY_CHILD
+            )
           }
         }
       }
