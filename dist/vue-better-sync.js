@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v2.1.3
+ * vue-better-sync v2.2.3
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -18,6 +18,10 @@ var camelCase = (function (word) {
   return cache[word];
 });
 
+var isFunction = (function (value) { return typeof value === 'function'; });
+
+var isObject = (function (value) { return value !== null && typeof value === 'object'; });
+
 /* eslint no-eq-null: 0 eqeqeq: [2, "smart"] */
 var X_PROXY_PROPS = '_VBS_PP_';
 var X_DATA_PROCESSED = '_VBS_DP_';
@@ -25,8 +29,10 @@ var X_BEFORE_CREATE_PROCESSED = '_VBS_BCP_';
 var X_LAST_VALUES_FROM_PARENT = '_VBS_LVFP_';
 var X_LAST_VALUES_FROM_CHILD = '_VBS_LVFC_';
 var X_PROXY_CHANGED_BY_PARENT = '_VBS_PCBP_';
-var X_PROP_CHANGED_BY_PARENT = 1;
-var X_PROP_CHANGED_BY_CHILD = 2;
+var X_PROP_CHANGED_BY_PARENT = 0;
+var X_PROP_CHANGED_BY_CHILD = 1;
+var X_WATCH_PROP = 0;
+var X_WATCH_PROXY = 1;
 var index = (function (ref) {
   if ( ref === void 0 ) ref = {};
   var prop = ref.prop; if ( prop === void 0 ) prop = 'value';
@@ -68,6 +74,7 @@ var index = (function (ref) {
       var syncMethod = "sync" + PropName;
       var directSyncMethod = "sync" + PropName + "Directly";
       var transformMethod = "transform" + PropName;
+      var watchMethod = "_VBS_W_" + propName + "_";
       ctx[X_PROXY_PROPS].push(proxy);
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
@@ -98,21 +105,36 @@ var index = (function (ref) {
         this[proxy] = newValue;
       };
 
+      ctx.methods[watchMethod] = function (newValue, oldValue, from) {
+        if (newValue !== oldValue) {
+          var fromProp = from === X_WATCH_PROP;
+          var LAST_VALUES_FROM = fromProp ? X_LAST_VALUES_FROM_PARENT : X_LAST_VALUES_FROM_CHILD;
+          var CHANGED_BY = fromProp ? X_PROP_CHANGED_BY_PARENT : X_PROP_CHANGED_BY_CHILD;
+          this[LAST_VALUES_FROM][propName] = newValue;
+
+          if (isFunction(this[transformMethod])) {
+            var transformedValue = this[transformMethod]({
+              oldValue: oldValue,
+              newValue: newValue
+            }, fromProp);
+
+            if (isObject(transformedValue)) {
+              oldValue = transformedValue.oldValue;
+              newValue = transformedValue.newValue;
+            }
+          }
+
+          if (newValue !== oldValue) {
+            this[directSyncMethod](newValue, oldValue, CHANGED_BY);
+          }
+        }
+      };
+
       ctx.watch[propName] = {
         immediate: true,
 
         handler: function handler(newValue, oldValue) {
-          if (newValue !== oldValue) {
-            this[X_LAST_VALUES_FROM_PARENT][propName] = newValue;
-
-            if (typeof this[transformMethod] === 'function') {
-              newValue = newValue == null ? newValue : this[transformMethod](newValue, true);
-            }
-
-            if (newValue !== oldValue) {
-              this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
-            }
-          }
+          this[watchMethod](newValue, oldValue, X_WATCH_PROP);
         }
 
       };
@@ -125,17 +147,7 @@ var index = (function (ref) {
             return;
           }
 
-          if (newValue !== oldValue) {
-            this[X_LAST_VALUES_FROM_CHILD][propName] = newValue;
-
-            if (typeof this[transformMethod] === 'function') {
-              newValue = newValue == null ? newValue : this[transformMethod](newValue, false);
-            }
-
-            if (newValue !== oldValue) {
-              this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_CHILD);
-            }
-          }
+          this[watchMethod](newValue, oldValue, X_WATCH_PROXY);
         }
 
       };
