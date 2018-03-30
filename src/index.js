@@ -110,7 +110,10 @@ export default ({
       }
 
       ctx.watch[proxy] = function (newValue, oldValue) {
-        if (this[X_PROXY_CHANGED_BY_PARENT]) return
+        if (this[X_PROXY_CHANGED_BY_PARENT]) {
+          this[X_PROXY_CHANGED_BY_PARENT] = false
+          return
+        }
         if (newValue !== oldValue) {
           this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
           if (typeof this[transformMethod] === 'function') {
