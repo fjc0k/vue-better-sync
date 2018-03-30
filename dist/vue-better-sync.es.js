@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v2.1.0
+ * vue-better-sync v2.1.1
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -13,11 +13,12 @@ var camelCase = (function (word) {
 });
 
 /* eslint no-eq-null: 0 eqeqeq: [2, "smart"] */
-var X_PROXY_PROPS = '_VBS_PROXY_PROPS_';
-var X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_';
-var X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_';
-var X_LAST_VALUES_FROM_PARENT = '_VBS_LAST_VALUES_FROM_PARENT_';
-var X_LAST_VALUES_FROM_CHILD = '_X_LAST_VALUES_FROM_CHILD_';
+var X_PROXY_PROPS = '_VBS_PP_';
+var X_DATA_PROCESSED = '_VBS_DP_';
+var X_BEFORE_CREATE_PROCESSED = '_VBS_BCP_';
+var X_LAST_VALUES_FROM_PARENT = '_VBS_LVFP_';
+var X_LAST_VALUES_FROM_CHILD = '_VBS_LVFC_';
+var X_PROXY_CHANGED_BY_PARENT = '_VBS_PCBP_';
 var X_PROP_CHANGED_BY_PARENT = 1;
 var X_PROP_CHANGED_BY_CHILD = 2;
 var index = (function (ref) {
@@ -65,7 +66,8 @@ var index = (function (ref) {
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
         if (oldValue !== newValue) {
-          if (propChangedBy === X_PROP_CHANGED_BY_PARENT && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
+          if (propChangedBy === X_PROP_CHANGED_BY_PARENT && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName] && newValue !== this[proxy]) {
+            this[X_PROXY_CHANGED_BY_PARENT] = true;
             this[proxy] = newValue;
           }
 
@@ -102,7 +104,7 @@ var index = (function (ref) {
               oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true);
             }
 
-            if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
+            if (newValue !== oldValue) {
               this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
             }
           }
@@ -111,6 +113,8 @@ var index = (function (ref) {
       };
 
       ctx.watch[proxy] = function (newValue, oldValue) {
+        if (this[X_PROXY_CHANGED_BY_PARENT]) { return; }
+
         if (newValue !== oldValue) {
           this[X_LAST_VALUES_FROM_CHILD][propName] = newValue;
 
@@ -119,7 +123,7 @@ var index = (function (ref) {
             oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false);
           }
 
-          if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
+          if (newValue !== oldValue) {
             this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_CHILD);
           }
         }
