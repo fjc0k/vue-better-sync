@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v2.0.0
+ * vue-better-sync v2.1.0
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -102,7 +102,7 @@ var index = (function (ref) {
               oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true);
             }
 
-            if (newValue !== oldValue) {
+            if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
               this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_PARENT);
             }
           }
@@ -119,7 +119,7 @@ var index = (function (ref) {
             oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false);
           }
 
-          if (newValue !== oldValue) {
+          if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
             this[directSyncMethod](newValue, oldValue, X_PROP_CHANGED_BY_CHILD);
           }
         }
