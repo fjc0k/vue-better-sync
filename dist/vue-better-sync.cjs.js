@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v2.1.1
+ * vue-better-sync v2.1.2
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -115,7 +115,10 @@ var index = (function (ref) {
       };
 
       ctx.watch[proxy] = function (newValue, oldValue) {
-        if (this[X_PROXY_CHANGED_BY_PARENT]) { return; }
+        if (this[X_PROXY_CHANGED_BY_PARENT]) {
+          this[X_PROXY_CHANGED_BY_PARENT] = false;
+          return;
+        }
 
         if (newValue !== oldValue) {
           this[X_LAST_VALUES_FROM_CHILD][propName] = newValue;
