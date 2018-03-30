@@ -42,8 +42,8 @@
   },
   "scripts": {
     "lint": "xo",
-    "test": "yarn run lint && cross-env BABEL_ENV=test jest",
-    "test:cov": "yarn run lint && cross-env BABEL_ENV=test jest --coverage",
+    "test": "cross-env BABEL_ENV=test jest",
+    "test:cov": "cross-env BABEL_ENV=test jest --coverage",
     "build": "bili --format es,cjs,umd,umd-min --module-name VueBetterSync --js buble --banner --no-babel.babelrc"
   },
   "devDependencies": {
