@@ -96,7 +96,6 @@ export default ({
             this[X_LAST_VALUES_FROM_PARENT][propName] = newValue
             if (typeof this[transformMethod] === 'function') {
               newValue = newValue == null ? newValue : this[transformMethod](newValue, true)
-              oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true)
             }
             if (newValue !== oldValue) {
               this[directSyncMethod](
@@ -109,23 +108,25 @@ export default ({
         }
       }
 
-      ctx.watch[proxy] = function (newValue, oldValue) {
-        if (this[X_PROXY_CHANGED_BY_PARENT]) {
-          this[X_PROXY_CHANGED_BY_PARENT] = false
-          return
-        }
-        if (newValue !== oldValue) {
-          this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
-          if (typeof this[transformMethod] === 'function') {
-            newValue = newValue == null ? newValue : this[transformMethod](newValue, false)
-            oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false)
+      ctx.watch[proxy] = {
+        immediate: true,
+        handler(newValue, oldValue) {
+          if (this[X_PROXY_CHANGED_BY_PARENT]) {
+            this[X_PROXY_CHANGED_BY_PARENT] = false
+            return
           }
           if (newValue !== oldValue) {
-            this[directSyncMethod](
-              newValue,
-              oldValue,
-              X_PROP_CHANGED_BY_CHILD
-            )
+            this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
+            if (typeof this[transformMethod] === 'function') {
+              newValue = newValue == null ? newValue : this[transformMethod](newValue, false)
+            }
+            if (newValue !== oldValue) {
+              this[directSyncMethod](
+                newValue,
+                oldValue,
+                X_PROP_CHANGED_BY_CHILD
+              )
+            }
           }
         }
       }
