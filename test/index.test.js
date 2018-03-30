@@ -126,6 +126,6 @@ it('two-way binding with `transform${PropName}`', () => {
   input.element.value = newValue
   input.trigger('input')
   expect(prompt.vm.actualValue).toBe(newValue)
-  expect(prompt.emitted().input[0]).toEqual([newValue + '_', '_' + oldValue + '_'])
+  expect(prompt.emitted().input[0]).toEqual([newValue + '_', '_' + oldValue])
   expect(wrapper.vm.value).toBe(newValue + '_')
 })
