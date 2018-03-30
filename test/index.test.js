@@ -1,7 +1,7 @@
 /* eslint-disable no-template-curly-in-string */
 
 import { mount } from '@vue/test-utils'
-import { Prompt, Prompt2, Prompt3, Prompt4 } from './components'
+import { Prompt, Prompt2, Prompt3 } from './components'
 
 const DEFAULT_VALUE = '123'
 const DEFAULT_VISIBLE = false
@@ -115,42 +115,17 @@ it('two-way binding by `v-model` with custom `event`', () => {
   expect(wrapper.vm.value).toBe(newValue)
 })
 
-it('two-way binding with `beforeSync${PropName}`', done => {
+it('two-way binding with `transform${PropName}`', () => {
   const oldValue = DEFAULT_VALUE
-  const oldVisible = DEFAULT_VISIBLE
-  const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" :visible.sync="visible" />`, Prompt3)
+  const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" />`, Prompt3)
   expect(wrapper.vm.value).toBe(oldValue)
+  expect(prompt.vm.actualValue).toBe('_' + oldValue)
+  expect(prompt.emitted().input).toBe(undefined)
 
-  const newValue = 'world'
+  const newValue = '=-='
   input.element.value = newValue
   input.trigger('input')
-  expect(wrapper.vm.value).toBe(newValue)
-
-  const newValue2 = newValue + '_desync'
-  input.element.value = newValue2
-  input.trigger('input')
   expect(prompt.vm.actualValue).toBe(newValue)
-  expect(wrapper.vm.value).toBe(newValue)
-
-  expect(wrapper.vm.visible).toBe(oldVisible)
-  prompt.trigger('click')
-  const newVisible = !oldVisible
-  setTimeout(() => {
-    expect(wrapper.vm.visible).toBe(newVisible)
-    done()
-  }, 3000)
-})
-
-it('two-way binding with `beforeProxy${PropName}`', () => {
-  const oldValue = DEFAULT_VALUE
-  const { wrapper, prompt } = wrap(`<Prompt v-model="value" />`, Prompt4)
-  expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe(Number(oldValue))
-  expect(prompt.emitted().input).toBe(undefined)
-
-  const newValue = '900'
-  wrapper.setData({ value: newValue })
-  expect(prompt.emitted().input).toBe(undefined)
-  expect(wrapper.vm.value).toBe(newValue)
-  expect(prompt.vm.actualValue).toBe(Number(newValue))
+  expect(prompt.emitted().input[0]).toEqual([newValue + '_', '_' + oldValue + '_'])
+  expect(wrapper.vm.value).toBe(newValue + '_')
 })

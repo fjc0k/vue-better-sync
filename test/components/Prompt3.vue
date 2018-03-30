@@ -30,15 +30,8 @@ export default {
     handleClick() {
       this.syncVisible(!this.actualVisible)
     },
-    beforeSyncValue(oldValue, newValue, confirm, cancel) {
-      if (newValue === oldValue + '_desync') {
-        cancel()
-      } else {
-        confirm()
-      }
-    },
-    beforeSyncVisible(oldValue, newValue, confirm) {
-      setTimeout(confirm, 1000)
+    transformValue(value, fromProp) {
+      return fromProp ? `_${value}` : `${value}_`
     }
   }
 }
