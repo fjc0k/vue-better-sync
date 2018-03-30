@@ -1,11 +1,12 @@
 /* eslint no-eq-null: 0 eqeqeq: [2, "smart"] */
 import { camelCase } from './utils'
 
-const X_PROXY_PROPS = '_VBS_PROXY_PROPS_'
-const X_DATA_PROCESSED = '_VBS_DATA_PROCESSED_'
-const X_BEFORE_CREATE_PROCESSED = '_VBS_BEFORE_CREATE_PROCESSED_'
-const X_LAST_VALUES_FROM_PARENT = '_VBS_LAST_VALUES_FROM_PARENT_'
-const X_LAST_VALUES_FROM_CHILD = '_X_LAST_VALUES_FROM_CHILD_'
+const X_PROXY_PROPS = '_VBS_PP_'
+const X_DATA_PROCESSED = '_VBS_DP_'
+const X_BEFORE_CREATE_PROCESSED = '_VBS_BCP_'
+const X_LAST_VALUES_FROM_PARENT = '_VBS_LVFP_'
+const X_LAST_VALUES_FROM_CHILD = '_VBS_LVFC_'
+const X_PROXY_CHANGED_BY_PARENT = '_VBS_PCBP_'
 const X_PROP_CHANGED_BY_PARENT = 1
 const X_PROP_CHANGED_BY_CHILD = 2
 
@@ -60,8 +61,10 @@ export default ({
         if (oldValue !== newValue) {
           if (
             propChangedBy === X_PROP_CHANGED_BY_PARENT &&
-            newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]
+            newValue !== this[X_LAST_VALUES_FROM_CHILD][propName] &&
+            newValue !== this[proxy]
           ) {
+            this[X_PROXY_CHANGED_BY_PARENT] = true
             this[proxy] = newValue
           }
           if (
@@ -95,7 +98,7 @@ export default ({
               newValue = newValue == null ? newValue : this[transformMethod](newValue, true)
               oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, true)
             }
-            if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
+            if (newValue !== oldValue) {
               this[directSyncMethod](
                 newValue,
                 oldValue,
@@ -107,13 +110,14 @@ export default ({
       }
 
       ctx.watch[proxy] = function (newValue, oldValue) {
+        if (this[X_PROXY_CHANGED_BY_PARENT]) return
         if (newValue !== oldValue) {
           this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
           if (typeof this[transformMethod] === 'function') {
             newValue = newValue == null ? newValue : this[transformMethod](newValue, false)
             oldValue = oldValue == null ? oldValue : this[transformMethod](oldValue, false)
           }
-          if (newValue !== oldValue && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
+          if (newValue !== oldValue) {
             this[directSyncMethod](
               newValue,
               oldValue,
