@@ -1,6 +1,6 @@
 <template>
-  <div v-show="actualVisible" @click="handleClick">
-    <input v-model="actualValue" type="text" />
+  <div v-show="localVisible" @click="handleClick">
+    <input v-model="localValue" type="text" />
   </div>
 </template>
 
@@ -31,7 +31,7 @@ export default {
 
   methods: {
     handleClick() {
-      this.syncVisible(!this.actualVisible)
+      this.syncVisible(!this.localVisible)
     }
   }
 }

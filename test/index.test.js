@@ -31,22 +31,22 @@ const wrap = (template, _Prompt = Prompt) => {
   }
 }
 
-it('uses prop value to create a child data prop: `actual${Prop}`', () => {
+it('uses prop value to create a child data prop: `local${Prop}`', () => {
   const value = 'custom'
   const { prompt } = wrap(`<Prompt value="${value}" />`)
-  expect(prompt.vm.actualValue).toBe(value)
-  expect(prompt.vm.actualVisible).toBe(Prompt.props.visible.default)
+  expect(prompt.vm.localValue).toBe(value)
+  expect(prompt.vm.localVisible).toBe(Prompt.props.visible.default)
 })
 
 it('two-way binding by `.sync`', () => {
   const oldValue = DEFAULT_VISIBLE
   const { wrapper, prompt } = wrap(`<Prompt :visible.sync="visible" />`)
   expect(wrapper.vm.visible).toBe(oldValue)
-  expect(prompt.vm.actualVisible).toBe(oldValue)
+  expect(prompt.vm.localVisible).toBe(oldValue)
 
   const newValue = !oldValue
   prompt.trigger('click')
-  expect(prompt.vm.actualVisible).toBe(newValue)
+  expect(prompt.vm.localVisible).toBe(newValue)
   expect(prompt.emitted()['update:visible'].length).toBe(1)
   expect(prompt.emitted()['update:visible'][0]).toEqual([newValue, oldValue])
   expect(wrapper.vm.visible).toBe(newValue)
@@ -56,14 +56,14 @@ it('two-way binding by `v-model`', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" />`)
   expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe(oldValue)
+  expect(prompt.vm.localValue).toBe(oldValue)
   expect(input.element.value).toBe(oldValue)
 
   const newValue = 'world'
   input.element.value = newValue
   input.trigger('input')
   expect(input.element.value).toBe(newValue)
-  expect(prompt.vm.actualValue).toBe(newValue)
+  expect(prompt.vm.localValue).toBe(newValue)
   expect(prompt.emitted().input.length).toBe(1)
   expect(prompt.emitted().input[0]).toEqual([newValue, oldValue])
   expect(wrapper.vm.value).toBe(newValue)
@@ -73,25 +73,25 @@ it('two-way binding: down', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt } = wrap(`<Prompt v-model="value" />`)
   expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe(oldValue)
+  expect(prompt.vm.localValue).toBe(oldValue)
 
   const newValue = 'world'
   wrapper.setData({ value: newValue })
-  expect(prompt.vm.actualValue).toBe(newValue)
+  expect(prompt.vm.localValue).toBe(newValue)
 })
 
 it('two-way binding by `v-model` or `.sync`', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt, input } = wrap(`<Prompt :value.sync="value" />`)
   expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe(oldValue)
+  expect(prompt.vm.localValue).toBe(oldValue)
   expect(input.element.value).toBe(oldValue)
 
   const newValue = 'world'
   input.element.value = newValue
   input.trigger('input')
   expect(input.element.value).toBe(newValue)
-  expect(prompt.vm.actualValue).toBe(newValue)
+  expect(prompt.vm.localValue).toBe(newValue)
   expect(prompt.emitted()['update:value'].length).toBe(1)
   expect(prompt.emitted()['update:value'][0]).toEqual([newValue, oldValue])
   expect(wrapper.vm.value).toBe(newValue)
@@ -102,14 +102,14 @@ it('two-way binding by `v-model` with custom `event`', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" />`, Prompt2)
   expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe(oldValue)
+  expect(prompt.vm.localValue).toBe(oldValue)
   expect(input.element.value).toBe(oldValue)
 
   const newValue = 'world'
   input.element.value = newValue
   input.trigger('input')
   expect(input.element.value).toBe(newValue)
-  expect(prompt.vm.actualValue).toBe(newValue)
+  expect(prompt.vm.localValue).toBe(newValue)
   expect(prompt.emitted()[event].length).toBe(1)
   expect(prompt.emitted()[event][0]).toEqual([newValue, oldValue])
   expect(wrapper.vm.value).toBe(newValue)
@@ -119,13 +119,13 @@ it('two-way binding with `transform${PropName}`', () => {
   const oldValue = DEFAULT_VALUE
   const { wrapper, prompt, input } = wrap(`<Prompt v-model="value" />`, Prompt3)
   expect(wrapper.vm.value).toBe(oldValue)
-  expect(prompt.vm.actualValue).toBe(oldValue + '_')
+  expect(prompt.vm.localValue).toBe(oldValue + '_')
   expect(prompt.emitted().input).toBe(undefined)
 
   const newValue = '=-='
   input.element.value = newValue
   input.trigger('input')
-  expect(prompt.vm.actualValue).toBe(newValue)
+  expect(prompt.vm.localValue).toBe(newValue)
   expect(prompt.emitted().input[0]).toEqual([newValue + '-', oldValue + '_'])
   expect(wrapper.vm.value).toBe(newValue + '-')
 })
