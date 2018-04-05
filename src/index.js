@@ -52,11 +52,13 @@ export default ({
       if (!isModel && !isSync) return
 
       const PropName = camelCase(`-${propName}`)
-      const proxy = `actual${PropName}`
+      const proxy = `local${PropName}`
       const syncMethod = `sync${PropName}`
       const directSyncMethod = `sync${PropName}Directly`
       const transformMethod = `transform${PropName}`
       const watchMethod = `_VBS_W_${propName}_`
+      const onPropChange = `on${PropName}Change`
+      const onProxyChange = `onLocal${PropName}Change`
 
       ctx[X_PROXY_PROPS].push(proxy)
 
@@ -109,6 +111,15 @@ export default ({
             }
           }
           if (newValue !== oldValue) {
+            if (fromProp) {
+              if (isFunction(this[onPropChange])) {
+                this[onPropChange](newValue, oldValue)
+              }
+            } else {
+              if (isFunction(this[onProxyChange])) {
+                this[onProxyChange](newValue, oldValue)
+              }
+            }
             this[directSyncMethod](
               newValue,
               oldValue,
