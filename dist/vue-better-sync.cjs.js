@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v2.2.3
+ * vue-better-sync v3.0.0
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -66,11 +66,13 @@ var index = (function (ref) {
       var isModel = prop === propName;
       if (!isModel && !isSync) { return; }
       var PropName = camelCase(("-" + propName));
-      var proxy = "actual" + PropName;
+      var proxy = "local" + PropName;
       var syncMethod = "sync" + PropName;
       var directSyncMethod = "sync" + PropName + "Directly";
       var transformMethod = "transform" + PropName;
       var watchMethod = "_VBS_W_" + propName + "_";
+      var onPropChange = "on" + PropName + "Change";
+      var onProxyChange = "onLocal" + PropName + "Change";
       ctx[X_PROXY_PROPS].push(proxy);
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
@@ -121,6 +123,16 @@ var index = (function (ref) {
           }
 
           if (newValue !== oldValue) {
+            if (fromProp) {
+              if (isFunction(this[onPropChange])) {
+                this[onPropChange](newValue, oldValue);
+              }
+            } else {
+              if (isFunction(this[onProxyChange])) {
+                this[onProxyChange](newValue, oldValue);
+              }
+            }
+
             this[directSyncMethod](newValue, oldValue, CHANGED_BY);
           }
         }
