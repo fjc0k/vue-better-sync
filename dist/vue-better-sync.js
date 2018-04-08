@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v3.0.0
+ * vue-better-sync v3.1.0
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -73,7 +73,8 @@ var index = (function (ref) {
       var proxy = "local" + PropName;
       var syncMethod = "sync" + PropName;
       var directSyncMethod = "sync" + PropName + "Directly";
-      var transformMethod = "transform" + PropName;
+      var transformPropMethod = "transform" + PropName;
+      var transformProxyMethod = "transformLocal" + PropName;
       var watchMethod = "_VBS_W_" + propName + "_";
       var onPropChange = "on" + PropName + "Change";
       var onProxyChange = "onLocal" + PropName + "Change";
@@ -113,12 +114,13 @@ var index = (function (ref) {
           var LAST_VALUES_FROM = fromProp ? X_LAST_VALUES_FROM_PARENT : X_LAST_VALUES_FROM_CHILD;
           var CHANGED_BY = fromProp ? X_PROP_CHANGED_BY_PARENT : X_PROP_CHANGED_BY_CHILD;
           this[LAST_VALUES_FROM][propName] = newValue;
+          var transformMethod = fromProp ? transformPropMethod : transformProxyMethod;
 
           if (isFunction(this[transformMethod])) {
             var transformedValue = this[transformMethod]({
               oldValue: oldValue,
               newValue: newValue
-            }, fromProp);
+            });
 
             if (isObject(transformedValue)) {
               oldValue = transformedValue.oldValue;
@@ -131,10 +133,8 @@ var index = (function (ref) {
               if (isFunction(this[onPropChange])) {
                 this[onPropChange](newValue, oldValue);
               }
-            } else {
-              if (isFunction(this[onProxyChange])) {
-                this[onProxyChange](newValue, oldValue);
-              }
+            } else if (isFunction(this[onProxyChange])) {
+              this[onProxyChange](newValue, oldValue);
             }
 
             this[directSyncMethod](newValue, oldValue, CHANGED_BY);

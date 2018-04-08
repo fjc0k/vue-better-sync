@@ -1,14 +1,17 @@
 {
   "name": "vue-better-sync",
-  "version": "3.0.0",
-  "description": "Make it easier for props to enable two-way binding by v-model or .sync",
-  "repository": "git@github.com:fjc0k/vue-better-sync.git",
+  "version": "3.1.0",
+  "description": "Simply sync values.",
+  "repository": {
+    "type": "git",
+    "url": "fjc0k/vue-better-sync"
+  },
   "author": "fjc0k <fjc0kb@gmail.com>",
   "license": "MIT",
   "main": "dist/vue-better-sync.cjs.js",
   "module": "dist/vue-better-sync.es.js",
-  "unpkg": "dist/vue-better-sync.js",
-  "jsdelivr": "dist/vue-better-sync.js",
+  "unpkg": "dist/vue-better-sync.min.js",
+  "jsdelivr": "dist/vue-better-sync.min.js",
   "files": [
     "dist"
   ],
