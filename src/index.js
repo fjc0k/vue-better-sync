@@ -55,7 +55,8 @@ export default ({
       const proxy = `local${PropName}`
       const syncMethod = `sync${PropName}`
       const directSyncMethod = `sync${PropName}Directly`
-      const transformMethod = `transform${PropName}`
+      const transformPropMethod = `transform${PropName}`
+      const transformProxyMethod = `transformLocal${PropName}`
       const watchMethod = `_VBS_W_${propName}_`
       const onPropChange = `on${PropName}Change`
       const onProxyChange = `onLocal${PropName}Change`
@@ -100,11 +101,9 @@ export default ({
           const LAST_VALUES_FROM = fromProp ? X_LAST_VALUES_FROM_PARENT : X_LAST_VALUES_FROM_CHILD
           const CHANGED_BY = fromProp ? X_PROP_CHANGED_BY_PARENT : X_PROP_CHANGED_BY_CHILD
           this[LAST_VALUES_FROM][propName] = newValue
+          const transformMethod = fromProp ? transformPropMethod : transformProxyMethod
           if (isFunction(this[transformMethod])) {
-            const transformedValue = this[transformMethod](
-              { oldValue, newValue },
-              fromProp
-            )
+            const transformedValue = this[transformMethod]({ oldValue, newValue })
             if (isObject(transformedValue)) {
               oldValue = transformedValue.oldValue
               newValue = transformedValue.newValue
@@ -115,10 +114,8 @@ export default ({
               if (isFunction(this[onPropChange])) {
                 this[onPropChange](newValue, oldValue)
               }
-            } else {
-              if (isFunction(this[onProxyChange])) {
-                this[onProxyChange](newValue, oldValue)
-              }
+            } else if (isFunction(this[onProxyChange])) {
+              this[onProxyChange](newValue, oldValue)
             }
             this[directSyncMethod](
               newValue,
