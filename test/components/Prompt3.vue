@@ -30,8 +30,12 @@ export default {
     handleClick() {
       this.syncVisible(!this.localVisible)
     },
-    transformValue(_, fromProp) {
-      _.newValue += fromProp ? '_' : '-'
+    transformValue(_) {
+      _.newValue += '_'
+      return _
+    },
+    transformLocalValue(_) {
+      _.newValue += '-'
       return _
     }
   }
