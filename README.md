@@ -48,4 +48,4 @@ Inside your Vue components:
     }
   }
 </script>
-```html
+```
