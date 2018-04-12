@@ -1,6 +1,6 @@
 {
   "name": "vue-better-sync",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Simply sync values.",
   "repository": {
     "type": "git",
@@ -29,38 +29,26 @@
       "node_modules"
     ]
   },
-  "xo": {
-    "extends": [
-      "rem",
-      "plugin:vue/essential"
-    ],
-    "envs": [
-      "browser",
-      "jest"
-    ],
-    "rules": {
-      "unicorn/filename-case": 0,
-      "import/prefer-default-export": 0
-    }
-  },
   "scripts": {
-    "lint": "xo",
     "test": "cross-env BABEL_ENV=test jest",
     "test:cov": "cross-env BABEL_ENV=test jest --coverage",
     "build": "bili --format es,cjs,umd,umd-min --module-name VueBetterSync --js buble --banner --no-babel.babelrc"
   },
+  "eslintConfig": {
+    "root": true,
+    "extends": "@fir-ui/fir"
+  },
   "devDependencies": {
+    "@fir-ui/eslint-config-fir": "^0.3.0",
     "@vue/test-utils": "^1.0.0-beta.12",
     "babel-jest": "^22.4.1",
     "babel-preset-env": "^1.6.1",
     "bili": "^3.0.7",
     "cross-env": "^5.1.4",
-    "eslint-config-rem": "^4.0.0",
-    "eslint-plugin-vue": "^4.3.0",
+    "eslint": "^4.19.1",
     "jest": "^22.4.2",
     "vue": "^2.5.16",
     "vue-jest": "^2.1.1",
-    "vue-template-compiler": "^2.5.16",
-    "xo": "^0.20.3"
+    "vue-template-compiler": "^2.5.16"
   }
 }

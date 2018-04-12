@@ -23,6 +23,7 @@ var X_BEFORE_CREATE_PROCESSED = '_VBS_BCP_';
 var X_LAST_VALUES_FROM_PARENT = '_VBS_LVFP_';
 var X_LAST_VALUES_FROM_CHILD = '_VBS_LVFC_';
 var X_PROXY_CHANGED_BY_PARENT = '_VBS_PCBP_';
+var X_PROPVALUE_CHANGED_BY_CHILD = '_VBS_PVBC_';
 var X_PROP_CHANGED_BY_PARENT = 0;
 var X_PROP_CHANGED_BY_CHILD = 1;
 var X_WATCH_PROP = 0;
@@ -81,7 +82,9 @@ var index = (function (ref) {
             this[proxy] = newValue;
           }
 
-          if (propChangedBy === X_PROP_CHANGED_BY_CHILD && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
+          if (propChangedBy === X_PROP_CHANGED_BY_CHILD && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName] && newValue !== this[propName]) {
+            this[X_PROPVALUE_CHANGED_BY_CHILD] = true;
+
             if (isModel) {
               this.$emit(event, newValue, oldValue);
             }
@@ -140,6 +143,11 @@ var index = (function (ref) {
         immediate: true,
 
         handler: function handler(newValue, oldValue) {
+          if (this[X_PROPVALUE_CHANGED_BY_CHILD]) {
+            this[X_PROPVALUE_CHANGED_BY_CHILD] = false;
+            return;
+          }
+
           this[watchMethod](newValue, oldValue, X_WATCH_PROP);
         }
 
