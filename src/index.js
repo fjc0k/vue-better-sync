@@ -7,6 +7,7 @@ const X_BEFORE_CREATE_PROCESSED = '_VBS_BCP_'
 const X_LAST_VALUES_FROM_PARENT = '_VBS_LVFP_'
 const X_LAST_VALUES_FROM_CHILD = '_VBS_LVFC_'
 const X_PROXY_CHANGED_BY_PARENT = '_VBS_PCBP_'
+const X_PROPVALUE_CHANGED_BY_CHILD = '_VBS_PVBC_'
 const X_PROP_CHANGED_BY_PARENT = 0
 const X_PROP_CHANGED_BY_CHILD = 1
 const X_WATCH_PROP = 0
@@ -75,8 +76,10 @@ export default ({
           }
           if (
             propChangedBy === X_PROP_CHANGED_BY_CHILD &&
-            newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]
+            newValue !== this[X_LAST_VALUES_FROM_PARENT][propName] &&
+            newValue !== this[propName]
           ) {
+            this[X_PROPVALUE_CHANGED_BY_CHILD] = true
             if (isModel) {
               this.$emit(event, newValue, oldValue)
             }
@@ -129,6 +132,10 @@ export default ({
       ctx.watch[propName] = {
         immediate: true,
         handler(newValue, oldValue) {
+          if (this[X_PROPVALUE_CHANGED_BY_CHILD]) {
+            this[X_PROPVALUE_CHANGED_BY_CHILD] = false
+            return
+          }
           this[watchMethod](newValue, oldValue, X_WATCH_PROP)
         }
       }
