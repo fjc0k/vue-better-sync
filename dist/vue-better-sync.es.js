@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v3.1.0
+ * vue-better-sync v3.1.2
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -77,12 +77,12 @@ var index = (function (ref) {
 
       ctx.methods[directSyncMethod] = function (newValue, oldValue, propChangedBy) {
         if (oldValue !== newValue) {
-          if (propChangedBy === X_PROP_CHANGED_BY_PARENT && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName] && newValue !== this[proxy]) {
+          if (propChangedBy === X_PROP_CHANGED_BY_PARENT && newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]) {
             this[X_PROXY_CHANGED_BY_PARENT] = true;
             this[proxy] = newValue;
           }
 
-          if (propChangedBy === X_PROP_CHANGED_BY_CHILD && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName] && newValue !== this[propName]) {
+          if (propChangedBy === X_PROP_CHANGED_BY_CHILD && newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]) {
             this[X_PROPVALUE_CHANGED_BY_CHILD] = true;
 
             if (isModel) {
@@ -108,9 +108,7 @@ var index = (function (ref) {
       ctx.methods[watchMethod] = function (newValue, oldValue, from) {
         if (newValue !== oldValue) {
           var fromProp = from === X_WATCH_PROP;
-          var LAST_VALUES_FROM = fromProp ? X_LAST_VALUES_FROM_PARENT : X_LAST_VALUES_FROM_CHILD;
           var CHANGED_BY = fromProp ? X_PROP_CHANGED_BY_PARENT : X_PROP_CHANGED_BY_CHILD;
-          this[LAST_VALUES_FROM][propName] = newValue;
           var transformMethod = fromProp ? transformPropMethod : transformProxyMethod;
 
           if (isFunction(this[transformMethod])) {
@@ -143,6 +141,8 @@ var index = (function (ref) {
         immediate: true,
 
         handler: function handler(newValue, oldValue) {
+          this[X_LAST_VALUES_FROM_PARENT][propName] = newValue;
+
           if (this[X_PROPVALUE_CHANGED_BY_CHILD]) {
             this[X_PROPVALUE_CHANGED_BY_CHILD] = false;
             return;
@@ -156,6 +156,8 @@ var index = (function (ref) {
         immediate: true,
 
         handler: function handler(newValue, oldValue) {
+          this[X_LAST_VALUES_FROM_CHILD][propName] = newValue;
+
           if (this[X_PROXY_CHANGED_BY_PARENT]) {
             this[X_PROXY_CHANGED_BY_PARENT] = false;
             return;
