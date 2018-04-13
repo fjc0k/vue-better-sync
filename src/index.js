@@ -14,6 +14,7 @@ const X_WATCH_PROP = 0
 const X_WATCH_PROXY = 1
 
 export default model => {
+  const hasModel = isObject(model) && model.prop
   const mixin = {
     data() {
       const ctx = this.$options
@@ -32,19 +33,28 @@ export default model => {
     beforeCreate() {
       const ctx = this.$options
 
-      if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) return
+      let props = ctx.props
+
+      if (!props) return
+
+      if (this[X_BEFORE_CREATE_PROCESSED]) {
+        if (!hasModel) return
+        const modelDescriptor = props[model.prop]
+        props = {}
+        props[model.prop] = modelDescriptor
+      }
 
       this[X_BEFORE_CREATE_PROCESSED] = true
-      ctx[X_PROXY_PROPS] = []
-      this[X_LAST_VALUES_FROM_PARENT] = {}
-      this[X_LAST_VALUES_FROM_CHILD] = {}
+      ctx[X_PROXY_PROPS] = ctx[X_PROXY_PROPS] || []
+      this[X_LAST_VALUES_FROM_PARENT] = this[X_LAST_VALUES_FROM_PARENT] || {}
+      this[X_LAST_VALUES_FROM_CHILD] = this[X_LAST_VALUES_FROM_CHILD] || {}
       ctx.methods = ctx.methods || {}
       ctx.watch = ctx.watch || {}
 
-      Object.keys(ctx.props).forEach(propName => {
-        const { sync: isSync } = ctx.props[propName]
+      Object.keys(props).forEach(propName => {
+        const { sync: isSync } = props[propName]
 
-        const isModel = isObject(model) && model.prop === propName
+        const isModel = hasModel && model.prop === propName
 
         if (!isModel && !isSync) return
 
