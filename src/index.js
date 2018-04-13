@@ -13,11 +13,8 @@ const X_PROP_CHANGED_BY_CHILD = 1
 const X_WATCH_PROP = 0
 const X_WATCH_PROXY = 1
 
-export default ({
-  prop = 'value',
-  event = 'input'
-} = {}) => ({
-  model: { prop, event },
+export default model => ({
+  model,
 
   data() {
     const ctx = this.$options
@@ -48,7 +45,7 @@ export default ({
     Object.keys(ctx.props).forEach(propName => {
       const { sync: isSync } = ctx.props[propName]
 
-      const isModel = prop === propName
+      const isModel = isObject(model) && model.prop === propName
 
       if (!isModel && !isSync) return
 
@@ -79,7 +76,7 @@ export default ({
           ) {
             this[X_PROPVALUE_CHANGED_BY_CHILD] = true
             if (isModel) {
-              this.$emit(event, newValue, oldValue)
+              this.$emit(model.event || 'input', newValue, oldValue)
             }
             if (isSync) {
               this.$emit(`update:${propName}`, newValue, oldValue)
