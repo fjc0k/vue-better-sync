@@ -1,4 +1,4 @@
-/* eslint-disable no-template-curly-in-string */
+/* eslint-disable */
 
 import { mount } from '@vue/test-utils'
 import { Prompt, Prompt2, Prompt3 } from './components'

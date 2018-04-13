@@ -11,7 +11,10 @@ export default {
   name: 'prompt',
 
   mixins: [
-    vueBetterSync()
+    vueBetterSync({
+      prop: 'value',
+      event: 'input'
+    })
   ],
 
   props: {
