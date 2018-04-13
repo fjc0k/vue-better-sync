@@ -68,16 +68,14 @@ export default ({
         if (oldValue !== newValue) {
           if (
             propChangedBy === X_PROP_CHANGED_BY_PARENT &&
-            newValue !== this[X_LAST_VALUES_FROM_CHILD][propName] &&
-            newValue !== this[proxy]
+            newValue !== this[X_LAST_VALUES_FROM_CHILD][propName]
           ) {
             this[X_PROXY_CHANGED_BY_PARENT] = true
             this[proxy] = newValue
           }
           if (
             propChangedBy === X_PROP_CHANGED_BY_CHILD &&
-            newValue !== this[X_LAST_VALUES_FROM_PARENT][propName] &&
-            newValue !== this[propName]
+            newValue !== this[X_LAST_VALUES_FROM_PARENT][propName]
           ) {
             this[X_PROPVALUE_CHANGED_BY_CHILD] = true
             if (isModel) {
@@ -101,9 +99,7 @@ export default ({
       ctx.methods[watchMethod] = function (newValue, oldValue, from) {
         if (newValue !== oldValue) {
           const fromProp = from === X_WATCH_PROP
-          const LAST_VALUES_FROM = fromProp ? X_LAST_VALUES_FROM_PARENT : X_LAST_VALUES_FROM_CHILD
           const CHANGED_BY = fromProp ? X_PROP_CHANGED_BY_PARENT : X_PROP_CHANGED_BY_CHILD
-          this[LAST_VALUES_FROM][propName] = newValue
           const transformMethod = fromProp ? transformPropMethod : transformProxyMethod
           if (isFunction(this[transformMethod])) {
             const transformedValue = this[transformMethod]({ oldValue, newValue })
@@ -132,6 +128,7 @@ export default ({
       ctx.watch[propName] = {
         immediate: true,
         handler(newValue, oldValue) {
+          this[X_LAST_VALUES_FROM_PARENT][propName] = newValue
           if (this[X_PROPVALUE_CHANGED_BY_CHILD]) {
             this[X_PROPVALUE_CHANGED_BY_CHILD] = false
             return
@@ -143,6 +140,7 @@ export default ({
       ctx.watch[proxy] = {
         immediate: true,
         handler(newValue, oldValue) {
+          this[X_LAST_VALUES_FROM_CHILD][propName] = newValue
           if (this[X_PROXY_CHANGED_BY_PARENT]) {
             this[X_PROXY_CHANGED_BY_PARENT] = false
             return
