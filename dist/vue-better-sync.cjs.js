@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v3.2.1
+ * vue-better-sync v3.2.2
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -37,6 +37,7 @@ var X_PROP_CHANGED_BY_CHILD = 1;
 var X_WATCH_PROP = 0;
 var X_WATCH_PROXY = 1;
 var index = (function (model) {
+  var hasModel = isObject(model) && model.prop;
   var mixin = {
     data: function data() {
       var ctx = this.$options;
@@ -50,16 +51,25 @@ var index = (function (model) {
     },
     beforeCreate: function beforeCreate() {
       var ctx = this.$options;
-      if (this[X_BEFORE_CREATE_PROCESSED] || !ctx.props) return;
+      var props = ctx.props;
+      if (!props) return;
+
+      if (this[X_BEFORE_CREATE_PROCESSED]) {
+        if (!hasModel) return;
+        var modelDescriptor = props[model.prop];
+        props = {};
+        props[model.prop] = modelDescriptor;
+      }
+
       this[X_BEFORE_CREATE_PROCESSED] = true;
-      ctx[X_PROXY_PROPS] = [];
-      this[X_LAST_VALUES_FROM_PARENT] = {};
-      this[X_LAST_VALUES_FROM_CHILD] = {};
+      ctx[X_PROXY_PROPS] = ctx[X_PROXY_PROPS] || [];
+      this[X_LAST_VALUES_FROM_PARENT] = this[X_LAST_VALUES_FROM_PARENT] || {};
+      this[X_LAST_VALUES_FROM_CHILD] = this[X_LAST_VALUES_FROM_CHILD] || {};
       ctx.methods = ctx.methods || {};
       ctx.watch = ctx.watch || {};
-      Object.keys(ctx.props).forEach(function (propName) {
-        var isSync = ctx.props[propName].sync;
-        var isModel = isObject(model) && model.prop === propName;
+      Object.keys(props).forEach(function (propName) {
+        var isSync = props[propName].sync;
+        var isModel = hasModel && model.prop === propName;
         if (!isModel && !isSync) return;
         var PropName = camelCase("-" + propName);
         var proxy = "local" + PropName;
