@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v3.2.0
+ * vue-better-sync v3.2.1
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -41,8 +41,7 @@
   var X_WATCH_PROP = 0;
   var X_WATCH_PROXY = 1;
   var index = (function (model) {
-    return {
-      model: model,
+    var mixin = {
       data: function data() {
         var ctx = this.$options;
         if (this[X_DATA_PROCESSED] || !ctx[X_PROXY_PROPS]) return;
@@ -168,6 +167,12 @@
         });
       }
     };
+
+    if (model) {
+      mixin.model = model;
+    }
+
+    return mixin;
   });
 
   return index;
