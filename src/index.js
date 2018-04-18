@@ -40,6 +40,7 @@ export default model => {
       if (this[X_BEFORE_CREATE_PROCESSED]) {
         if (!hasModel) return
         const modelDescriptor = props[model.prop]
+        if (!modelDescriptor) return
         props = {}
         props[model.prop] = modelDescriptor
       }
@@ -52,6 +53,8 @@ export default model => {
       ctx.watch = ctx.watch || {}
 
       Object.keys(props).forEach(propName => {
+        if (!props[propName]) return
+
         const { sync: isSync } = props[propName]
 
         const isModel = hasModel && model.prop === propName
