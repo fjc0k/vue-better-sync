@@ -1,5 +1,5 @@
 /*!
- * vue-better-sync v3.2.2
+ * vue-better-sync v3.2.3
  * (c) 2018-present fjc0k <fjc0kb@gmail.com>
  * Released under the MIT License.
  */
@@ -55,6 +55,7 @@ var index = (function (model) {
       if (this[X_BEFORE_CREATE_PROCESSED]) {
         if (!hasModel) return;
         var modelDescriptor = props[model.prop];
+        if (!modelDescriptor) return;
         props = {};
         props[model.prop] = modelDescriptor;
       }
@@ -66,6 +67,7 @@ var index = (function (model) {
       ctx.methods = ctx.methods || {};
       ctx.watch = ctx.watch || {};
       Object.keys(props).forEach(function (propName) {
+        if (!props[propName]) return;
         var isSync = props[propName].sync;
         var isModel = hasModel && model.prop === propName;
         if (!isModel && !isSync) return;
