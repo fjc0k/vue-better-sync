@@ -32,9 +32,9 @@
   "scripts": {
     "test": "cross-env BABEL_ENV=test jest",
     "test:cov": "cross-env BABEL_ENV=test jest --coverage",
-    "build": "bundler"
+    "build": "bdr"
   },
-  "firb": {
+  "bdr": {
     "entry": {
       "vue-better-sync": [
         "src/index.js",
@@ -50,11 +50,11 @@
     "dist"
   ],
   "devDependencies": {
-    "@fir-ui/bundler": "^0.4.2",
     "@fir-ui/eslint-config-fir": "^0.3.0",
     "@vue/test-utils": "^1.0.0-beta.12",
     "babel-jest": "^22.4.1",
     "babel-preset-env": "^1.6.1",
+    "bdr": "^1.3.4",
     "cross-env": "^5.1.4",
     "eslint": "^4.19.1",
     "jest": "^22.4.2",
